@@ -1,0 +1,198 @@
+package com.company;
+
+import com.company.Person;
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class Librarian extends Person {
+    Scanner x = new Scanner(System.in);
+    public Librarian(String firstName, String lastName, String schoolMail, String password) {
+        super(firstName, lastName, schoolMail, password);
+    }
+    public Librarian(){
+
+    }
+    public void deleteUser(){
+        System.out.println("Which user do you want to delete Student or Lecturer\n" +
+                "Type corresponding user: ");
+        String table=x.nextLine().toLowerCase();
+        printTables(table);
+        System.out.println("Enter the webMail address");
+        String mail=x.nextLine();
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("DELETE FROM " + table + " WHERE webMail='" + mail+ "';");
+        }catch (SQLException e){
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int option=x.nextInt();
+            x.nextLine();
+            switch (option) {
+                case 1:
+                    deleteUser();
+                    break;
+                case 2:
+                    System.out.println("Exit Point");
+                    break;
+                default:
+                    System.out.println("Your choice is  Unavailable");
+            }
+        }finally {
+            printTables(table);
+            System.out.println("Deletion was successful!!!");
+        }
+    }
+    public void addBook(){
+        String choice = "books";
+        printTables(choice);
+        System.out.println("Genre ");
+        String genre = x.nextLine();
+        System.out.println("Book title: ");
+        String book_title = x.nextLine();
+        System.out.println("Author ");
+        String author = x.nextLine();
+        try {
+
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n= statement.executeUpdate("INSERT INTO books (genre, book_title, author)\n" +
+                    "VALUES ('"+genre+"', '"+book_title+"', '"+author+"');");
+        }catch (SQLException e){
+            System.out.println("TRY AGAIN !!!!");
+            addBook();
+        }finally {
+            System.out.println("Insertion was a success!!!!\n" +
+                    "\nDo you want to add another book?\n" +
+                    "Enter 1 for YES and 2 for NO : ");
+            int option=x.nextInt();
+            x.nextLine();
+            switch (option){
+                case 1:
+                    addBook();
+                    break;
+                case 2:
+                    printTables(choice);
+                    System.out.println("Exit Point");
+                    break;
+            }
+        }
+    }
+    public void deleteBook(){
+        String choice = "books";
+        printTables(choice);
+        System.out.println("Enter the book number of book to delete");
+        int delete_book=x.nextInt();
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("DELETE FROM books WHERE bookNo='"+delete_book+"';");
+
+        }catch (SQLException e){
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int option=x.nextInt();
+            x.nextLine();
+            switch (option) {
+                case 1:
+                    deleteBook();
+                    break;
+                case 2:
+                    printTables(choice);
+                    System.out.println("Exit Point");
+                    break;
+                default:
+                    System.out.println("Your choice is  Unavailable");
+            }
+        }finally {
+            System.out.println("Deletion was a success!!!!" +
+                    "\nDo you want to delete another book?\n" +
+                    "Enter 1 for YES and 2 for NO : ");
+            int option=x.nextInt();
+            switch (option) {
+                case 1:
+                    deleteBook();
+                    break;
+                case 2:
+                    printTables(choice);
+                    System.out.println("Exit Point");
+                    break;
+            }
+        }
+    }
+    public void login(){
+        System.out.println("Enter your Webmail address");
+        setSchoolMail(x.nextLine());
+        System.out.println("Enter your password");
+        setPassword(x.nextLine());
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet= statement.executeQuery("SELECT * FROM librarian " +
+                    "WHERE webMail='"+getSchoolMail()+"' AND password= '"+getPassword()+"';");
+            int numOfRows=0;
+            while (resultSet.next()){
+                numOfRows++;
+            }
+            if(numOfRows>0) {
+                System.out.println("login is successful");
+                System.out.println("What action do want to perform : Enter a number\n" +
+                        "1.Remove a student or a Lecturer\n" +
+                        "2.Add a book\n" +
+                        "3.Remove a book\n" +
+                        "4.Open Study rooms");
+                int num = x.nextInt();
+                x.nextLine();
+                switch (num){
+                    case 1:
+                        deleteUser();
+                        break;
+                    case 2:
+                        addBook();
+                        break;
+                    case 3:
+                        deleteBook();
+                        break;
+                    case 4:
+                        unBookRoom();
+                    default:
+                        System.out.println("Your choice is Unavailable");
+                        login();
+                        break;
+                }
+            }else {
+                System.out.println("Login is Unsuccessful" +
+                        "\nChoose your next step:" +
+                        "\n1.Try again" +
+                        "\n2.Register" +
+                        "\n3.Exit");
+                int num=x.nextInt();
+                x.nextLine();
+                switch (num){
+                    case 1:
+                        login();
+                        break;
+                    case 2:
+                        register();
+                        break;
+                    case 3:
+                        System.exit(0);
+                    default:
+                        System.out.println("Your choice is Unavailable");
+                        login();
+                        break;
+
+                }
+            }
+        }catch (SQLException e){
+            System.out.println("An error has been found");
+        }
+    }
+}
