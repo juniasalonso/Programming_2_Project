@@ -1,0 +1,257 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class Person {
+    private String firstName;
+    private String lastName;
+    private String schoolMail;
+    private String password;
+    Scanner x = new Scanner(System.in);
+
+    public Person(String firstName, String lastName, String schoolMail, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.schoolMail= schoolMail;
+        this.password = password;
+    }
+    public Person(){
+        this.firstName = "";
+        this.lastName = "";
+        this.schoolMail = "";
+        this.password = "";
+    }
+
+    public void printTables(String choice){
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("Select * from "+choice+";");
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            int numberOfColumns=resultSetMetaData.getColumnCount();
+            for(int i = 1; i <= numberOfColumns; i++) {
+                System.out.printf("| %-35s",resultSetMetaData.getColumnLabel(i));
+            }
+            System.out.println();
+            while (resultSet.next())
+            {
+                for(int e = 1; e <= resultSetMetaData.getColumnCount(); e++)
+                {
+                    System.out.printf("| %-35s",resultSet.getString(e));
+                }
+                System.out.println();
+            }
+        }catch (Exception e){
+               System.out.println("An error was found");
+        }
+    }
+    public void register() {
+        System.out.println("Type your corresponding status\n" +
+                "1.Student\n" +
+                "2.Lecturer\n" +
+                "3.Librarian\n");
+        String choice = x.nextLine().toLowerCase();
+        System.out.println("Enter your firstname");
+        setFirstName(x.nextLine());
+        System.out.println("Enter your lastname");
+        setLastName(x.nextLine());
+        System.out.println("Enter your Webmail");
+        setSchoolMail(x.nextLine());
+        System.out.println("Enter your password");
+        setPassword(x.nextLine());
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("INSERT INTO " + choice + "\n" +
+                    "VALUES ('" + getFirstName() + "', '" + getLastName() + "', '" + getSchoolMail() + "', '" + getPassword() + "');");
+        } catch (SQLException e) {
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int choice1 = x.nextInt();
+            x.nextLine();
+            switch (choice1) {
+                case 1:
+                    register();
+                    break;
+                case 2:
+                    System.out.println("Exit Point");
+                    break;
+                default:
+                    System.out.println("Your choice is  Unavailable");
+            }
+        }finally {
+            System.out.println("You have successfully registered");
+        }
+    }
+    public void borrowBook() {
+        String choice = "books";
+        printTables(choice);
+        System.out.println("Enter the book nunber of the Book to borrow");
+        int num = x.nextInt();
+        x.nextLine();
+
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("UPDATE books\n" +
+                    "SET status = 'UNVAILABLE', borrowed_by = '" +getSchoolMail()+ "'\n" +
+                    "WHERE bookNo='" + num + "';");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int option= x.nextInt();
+            x.nextLine();
+            switch (option) {
+                case 1:
+                    printTables(choice);
+                    borrowBook();
+                    break;
+                case 2:
+                    System.out.println("Exit Point");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Your choice is  Unavailable");
+                    break;
+            }
+        }finally {
+            printTables(choice);
+            System.out.println("Book is successfully borrowed");
+        }
+    }
+     public void returnBook(){
+         String choice="books";
+         printTables(choice);
+         System.out.println("Enter the book number of the Book to return");
+         int num = x.nextInt();
+         try {
+             Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                     "root", "Kurija20@2");
+             Statement statement = connection.createStatement();
+             int n = statement.executeUpdate("UPDATE books\n" +
+                     "SET status = 'AVAILABLE', borrowed_by = 'null'\n" +
+                     "WHERE bookNo='"+num+"';");
+         }catch (SQLException e){
+             System.out.println("Please ensure you enter the right details\n" +
+                     "Do you want to try again\n" +
+                     "Enter 1 for Yes and 2 for No");
+             int option=x.nextInt();
+             x.nextLine();
+             switch (option) {
+                 case 1:
+                     returnBook();
+                     break;
+                 case 2:
+                     System.out.println("Exit Point");
+                     break;
+                 default:
+                     System.out.println("Your choice is  Unavailable");
+             }
+         }finally {
+             printTables(choice);
+             System.out.println("Book is successfully returned");
+         }
+     }
+    public void unBookRoom(){
+        String choice = "studyrooms";
+        printTables(choice);
+        System.out.println("Enter the room number you want to unbook");
+        int roomNo=x.nextInt();
+        x.nextLine();
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("UPDATE studyrooms\n" +
+                    "SET status = 'OPEN', booked_by ='  '\n" +
+                    "WHERE room_no='" + roomNo + "';");
+        }catch (SQLException e){
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int option=x.nextInt();
+            x.nextLine();
+            switch (option){
+                case 1:
+                    bookRoom();
+                    break;
+                case 2:
+                    System.out.println("Exit Point");
+                    break;
+            }
+        }finally {
+            printTables(choice);
+            System.out.println("Room Successfully unbooked!!!");
+        }
+    }
+    public void bookRoom(){
+        String choice = "studyrooms";
+        printTables(choice);
+        System.out.println("Enter the room number you want to book");
+        int roomNo=x.nextInt();
+        x.nextLine();
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/library",
+                    "root", "Kurija20@2");
+            Statement statement = connection.createStatement();
+            int n = statement.executeUpdate("UPDATE studyrooms\n" +
+                    "SET status = 'IN USE', booked_by ='" + getSchoolMail() + "'\n" +
+                    "WHERE room_no='" + roomNo + "';");
+        }catch (SQLException e){
+            System.out.println("Please ensure you enter the right details\n" +
+                    "Do you want to try again\n" +
+                    "Enter 1 for Yes and 2 for No");
+            int option=x.nextInt();
+            x.nextLine();
+            switch (option){
+                case 1:
+                    bookRoom();
+                    break;
+                case 2:
+                    System.out.println("Exit Point");
+                    break;
+            }
+        }finally {
+            printTables(choice);
+            System.out.println("Room Successfully booked!!!");
+        }
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getSchoolMail() {
+        return schoolMail;
+    }
+
+    public void setSchoolMail(String schoolMail) {
+        this.schoolMail = schoolMail;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
